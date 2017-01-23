@@ -191,14 +191,13 @@ console.log("hey: ====",minMax(newGame));
 console.log(newGame);
 console.log(isWinner(newGame, winnerStates));
 */
-document.onclick = function(element) {
+appField.onclick = function(element) {
     
     if (newGame.state === 1) {
-        var target = element.target,
-            fieldItem = target.closest(".play-field-item"),
+        var fieldItem = element.target,
             currentPosition = -1,
             currentPcStep = -1;
-        if (!fieldItem) {
+        if (fieldItem.className !== "play-field-item") {
             return;
         }
 
