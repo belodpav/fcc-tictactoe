@@ -2,7 +2,9 @@ var appField = document.getElementById("app-play-field"),
     appFieldItem = document.getElementsByClassName("play-field-item"),
     appChoice = document.getElementById("app-play-choice"),
     appStateX = document.getElementById("state-x"),
-    appStateO = document.getElementById("state-o");
+    appStateO = document.getElementById("state-o"),
+    appFieldCover = document.getElementById("app-field-over"),
+    appRestartBtn = document.getElementById("restart-btn");
 
 /* Game core constants */
 
@@ -42,15 +44,15 @@ function isWinner(game, winStates) {
         if (gameMoves[item[0]] === game.computer &&
             gameMoves[item[1]] === game.computer &&
             gameMoves[item[2]] === game.computer) {
-            return 10;
+            return [10, i];
         }
         if (gameMoves[item[0]] === game.user &&
             gameMoves[item[1]] === game.user &&
             gameMoves[item[2]] === game.user) {
-            return -10;
+            return [-10, i];
         }
     }
-    return 0;
+    return [0, 0];
 }
 
 // Make choice function 
@@ -62,10 +64,10 @@ function makeChoice(game, playerChoice) {
 function getUserSign(player) {
     
     if (player === 1) {
-        return "#000";
+        return 'url("assets/images/X-symbol.png")';
     }
     
-    return "#f00";
+    return 'url("assets/images/O-symbol-red.png")';
 }
 
 function firstComputerStep(game) {
@@ -74,6 +76,8 @@ function firstComputerStep(game) {
 }
 // initialization 
 function initGame(appField, appChoice, appStateX, appStateO, game) {
+    game.depth = 0;
+    game.curMap = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     appStateO.onclick = function() {
         game.state = 1;
         game.user = 2;
@@ -83,7 +87,7 @@ function initGame(appField, appChoice, appStateX, appStateO, game) {
         appField.style.display = "block";
         console.log(game);
         firstComputerStep(game);
-        appFieldItem[4].style.backgroundColor = getUserSign(game.computer);
+        appFieldItem[4].style.backgroundImage = getUserSign(game.computer);
     }
     appStateX.onclick = function() {
         game.state = 1;
@@ -99,12 +103,13 @@ function initGame(appField, appChoice, appStateX, appStateO, game) {
 
 function minMax(game) {
     //console.log(game.depth, "curMap: ",game.curMap," curerent");
-    if (isWinner(game, winnerStates) !== 0 || game.depth >= 9) {
+    var isWinnerList = isWinner(game, winnerStates);
+    if (isWinnerList[0] !== 0 || game.depth >= 9) {
         
-        if (isWinner(game, winnerStates) === 10) {
+        if (isWinnerList[0] === 10) {
             //console.log("=====Computer Win!===== ",game.curMap, game.currentPlayer);
             return [game.move, parseInt(1000/game.depth)];
-        } else if (isWinner(game, winnerStates) === -10) {
+        } else if (isWinnerList[0] === -10) {
             //console.log("Enemy win!");
             return [game.move, -10];
         }
@@ -173,6 +178,53 @@ function minMax(game) {
     }
     }
 }
+
+function drawCross(winner, numTypeCross, crossLayer) {
+    var markerColor = "";
+    if (winner === 1) {
+        markerColor = "-red";
+    }
+    switch(numTypeCross) {
+        case 0:
+            crossLayer.style.backgroundImage = 'url("assets/images/horiz-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "50% 50px";
+            break;
+        case 1:
+            appFieldCover.style.backgroundImage = 'url("assets/images/horiz-cross'+ markerColor + '.png")';
+            appFieldCover.style.backgroundPosition = "50% 200px";
+            break;
+        case 2:
+            crossLayer.style.backgroundImage = 'url("assets/images/horiz-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "50% 350px";
+            break;
+        case 3:
+            crossLayer.style.backgroundImage = 'url("assets/images/vertic-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "80px 50%";
+            break;
+        case 4:
+            crossLayer.style.backgroundImage = 'url("assets/images/vertic-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "250px 50%";
+            break;
+        case 5:
+            crossLayer.style.backgroundImage = 'url("assets/images/vertic-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "450px 50%";
+            break;
+        case 6:
+            crossLayer.style.backgroundImage = 'url("assets/images/1-9-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "50px 20px";
+            break;
+        case 7:
+            crossLayer.style.backgroundImage = 'url("assets/images/3-7-cross'+ markerColor + '.png")';
+            crossLayer.style.backgroundPosition = "50% 20px";
+            break;            
+    }
+}
+function clearFieldItems(fieldItems) {
+    for (var i=0; i<fieldItems.length; i++) {
+        fieldItems[i].style.backgroundImage = '';    
+    }
+    
+}
 var curField = [2, 1, 2, 0, 2, 0, 0, 0, 2];
 
 var newGame = new Object(game);
@@ -208,10 +260,12 @@ appField.onclick = function(element) {
         if (newGame.curMap[currentPosition] !== 0) {
             return;
         }
-        fieldItem.style.backgroundColor = getUserSign(newGame.user);
+        fieldItem.style.backgroundImage = getUserSign(newGame.user);
         newGame.curMap[currentPosition] = newGame.currentPlayer;
         newGame.depth++;
-        if (isWinner(newGame, winnerStates) === -10) {
+        var isWinnerList = isWinner(newGame, winnerStates);
+        if (isWinnerList[0] === -10) {
+            drawCross(game.currentPlayer,isWinnerList[1],appFieldCover);
             alert("You won!!!");
             newGame.state = 0;
         }
@@ -219,17 +273,36 @@ appField.onclick = function(element) {
         currentPcStep = minMax(newGame);
         newGame.curMap[currentPcStep[0]] = newGame.computer;
         //fieldItem.style.backgroundColor = "#000";
-        appFieldItem[currentPcStep[0]].style.backgroundColor = getUserSign(newGame.computer);
+        appFieldItem[currentPcStep[0]].style.backgroundImage = getUserSign(newGame.computer);
         newGame.depth++;
-        if (isWinner(newGame, winnerStates) === 10) {
+        isWinnerList = isWinner(newGame, winnerStates)
+        if (isWinnerList[0] === 10) {
+            appFieldCover.style.display = "block";
+            drawCross(game.currentPlayer, isWinnerList[1], appFieldCover);
             alert("Computer won!!!");
             newGame.state = 0;
-        }
-        if (newGame.depth >= 9) {
-        alert("hmmmm!!!!");
-        newGame.state = 0;
+        } else { 
+            if (newGame.depth >= 9) {
+            alert("It is draw!!!");
+            newGame.state = 0;
+            }
         }
         console.log(newGame.depth);
+        if (newGame.state === 0) {
+            appRestartBtn.style.display = "block";
+        }
     }
+}
+appRestartBtn.onclick = function() {
+    appRestartBtn.style.display = "none";
+    appField.style.display = "none";
+    appChoice.style.display = "inline-block";
+    appFieldCover.style.backgroundImage = "";
+    appFieldCover.style.display = "none";
+    //console.log(appFieldItem);
+    clearFieldItems(appFieldItem);
+    
+    var newGame = game;
+    initGame(appField, appChoice, appStateX, appStateO, newGame);
 }
 
