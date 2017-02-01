@@ -85,7 +85,6 @@ function initGame(appField, appChoice, appStateX, appStateO, game) {
         game.currentPlayer = 1;
         appChoice.style.display = "none";
         appField.style.display = "block";
-        console.log(game);
         firstComputerStep(game);
         appFieldItem[4].style.backgroundImage = getUserSign(game.computer);
     }
@@ -96,86 +95,71 @@ function initGame(appField, appChoice, appStateX, appStateO, game) {
         game.currentPlayer = 1;
         appChoice.style.display = "none";
         appField.style.display = "block";
-        console.log(game);
-    }
-    
+    }  
 }
 
 function minMax(game) {
-    //console.log(game.depth, "curMap: ",game.curMap," curerent");
     var isWinnerList = isWinner(game, winnerStates);
     if (isWinnerList[0] !== 0 || game.depth >= 9) {
-        
         if (isWinnerList[0] === 10) {
-            //console.log("=====Computer Win!===== ",game.curMap, game.currentPlayer);
             return [game.move, parseInt(1000/game.depth)];
         } else if (isWinnerList[0] === -10) {
-            //console.log("Enemy win!");
             return [game.move, -10];
         }
         return [game.move, 0];
     } else {
-    var min = 10000,
-        max = -100,
-        buffer = 0,
-        minI = 0,
-        maxI = 0,
-        obj = [];
-    game.depth++; 
-            
-    if (game.currentPlayer === 2) {
-        game.currentPlayer = 1;
-        game.currentEnemy = 2;
-    } else {
-        game.currentPlayer = 2;
-        game.currentEnemy = 1;
-    }
-    for (var i = 0; i < 9; i++) {
-        if (game.curMap[i] === 0) {
-            //console.log("print i = ",i,' current player = ',game.currentPlayer);
-            game.curMap[i] = game.currentPlayer;
-            
-            game.move = i;
-            
-            if (game.currentPlayer === game.computer) {
-                obj = minMax(game);
-                if (obj[1] > max) {
-                    maxI = i;
-                    max = obj[1];
-                }
-                
-                
-            } else {
-                obj = minMax(game);
-                if (obj[1] < min) {
-                    minI = i;
-                    min = obj[1];
-                }
-            }
-            //console.log("depth === ",game.depth, "current i === ",i ,"current MAX === ",max, "current MIN ===",min);
-            //console.log("end of the loop");
-            game.curMap[i] = 0;
-            
+        var min = 10000,
+            max = -100,
+            buffer = 0,
+            minI = 0,
+            maxI = 0,
+            obj = [];
+        game.depth++; 
+
+        if (game.currentPlayer === 2) {
+            game.currentPlayer = 1;
+            game.currentEnemy = 2;
+        } else {
+            game.currentPlayer = 2;
+            game.currentEnemy = 1;
         }
-    }
-    game.depth--;
-    
-    if (game.currentPlayer === 2) {
-        game.currentPlayer = 1;
-        game.currentEnemy = 2;
-    } else {
-        game.currentPlayer = 2;
-        game.currentEnemy = 1;
-    }   
-         
-    
-    if (game.currentPlayer === game.computer) {
-        //console.log("min: ", min);
-        return [minI, min];
-    } else {
-        //console.log("max: ", max);
-        return [maxI, max];
-    }
+        for (var i = 0; i < 9; i++) {
+            if (game.curMap[i] === 0) {
+                game.curMap[i] = game.currentPlayer;
+                game.move = i;
+                if (game.currentPlayer === game.computer) {
+                    obj = minMax(game);
+                    if (obj[1] > max) {
+                        maxI = i;
+                        max = obj[1];
+                    } 
+                } else {
+                    obj = minMax(game);
+                    if (obj[1] < min) {
+                        minI = i;
+                        min = obj[1];
+                    }
+                }
+                game.curMap[i] = 0;
+
+            }
+        }
+        game.depth--;
+
+        if (game.currentPlayer === 2) {
+            game.currentPlayer = 1;
+            game.currentEnemy = 2;
+        } else {
+            game.currentPlayer = 2;
+            game.currentEnemy = 1;
+        }   
+
+
+        if (game.currentPlayer === game.computer) {
+            return [minI, min];
+        } else {
+            return [maxI, max];
+        }
     }
 }
 
@@ -228,23 +212,10 @@ function clearFieldItems(fieldItems) {
 var curField = [2, 1, 2, 0, 2, 0, 0, 0, 2];
 
 var newGame = new Object(game);
-/*newGame.curMap = [2, 1, 1,
-                  1, 1, 2,
-                  2, 0, 0];
 
-*/
 initGame(appField, appChoice, appStateX, appStateO, newGame);
-/*newGame.depth = 7;
-newGame.user = 1;
-newGame.computer = 2;
-newGame.currentPlayer = 1;
-newGame.currentEnemy = 2;
-console.log("hey: ====",minMax(newGame));
-console.log(newGame);
-console.log(isWinner(newGame, winnerStates));
-*/
+
 appField.onclick = function(element) {
-    
     if (newGame.state === 1) {
         var fieldItem = element.target,
             currentPosition = -1,
@@ -252,8 +223,6 @@ appField.onclick = function(element) {
         if (fieldItem.className !== "play-field-item") {
             return;
         }
-
-        // Getting position what was clicked
         currentPosition = fieldItem.getAttribute("num");
         newGame.currentPlayer = newGame.user;
         newGame.currentEnemy = newGame.computer;
@@ -270,12 +239,13 @@ appField.onclick = function(element) {
             newGame.state = 0;
         }
 
-        currentPcStep = minMax(newGame);
-        newGame.curMap[currentPcStep[0]] = newGame.computer;
-        //fieldItem.style.backgroundColor = "#000";
-        appFieldItem[currentPcStep[0]].style.backgroundImage = getUserSign(newGame.computer);
-        newGame.depth++;
-        isWinnerList = isWinner(newGame, winnerStates)
+        if (newGame.depth < 9) {
+			currentPcStep = minMax(newGame);
+			newGame.curMap[currentPcStep[0]] = newGame.computer;
+			appFieldItem[currentPcStep[0]].style.backgroundImage = getUserSign(newGame.computer);
+			newGame.depth++;
+			isWinnerList = isWinner(newGame, winnerStates)
+		}
         if (isWinnerList[0] === 10) {
             appFieldCover.style.display = "block";
             drawCross(game.currentPlayer, isWinnerList[1], appFieldCover);
@@ -287,7 +257,6 @@ appField.onclick = function(element) {
             newGame.state = 0;
             }
         }
-        console.log(newGame.depth);
         if (newGame.state === 0) {
             appRestartBtn.style.display = "block";
         }
@@ -299,7 +268,6 @@ appRestartBtn.onclick = function() {
     appChoice.style.display = "inline-block";
     appFieldCover.style.backgroundImage = "";
     appFieldCover.style.display = "none";
-    //console.log(appFieldItem);
     clearFieldItems(appFieldItem);
     
     var newGame = game;
