@@ -10,8 +10,11 @@
 
 /* Basic */
 body {
+    font: 300 16px/24px Arial, sans-serif;
     background: url("../images/bg.jpg");
     text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
 /* App's Title */
@@ -65,8 +68,13 @@ body {
     display: inline-block;
 }
 #app-play-choice h2 {
-    font-family: Arial, sans-serif;
     font-size: 36px;
+    margin-top: 80px;
+}
+.play-field-states:after {
+    content: "";
+    display: table;
+    clear: both;
 }
 #state-x,
 #state-o {
@@ -100,4 +108,13 @@ body {
     position: absolute;
     top: 50%;
     z-index: 10000;
+}
+/* Footer */
+footer {
+    padding: 50px 0;
+}
+.copyrights,
+.copyrights a {
+    color: #555;
+    font-size: 12px;
 }
